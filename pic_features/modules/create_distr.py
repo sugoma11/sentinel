@@ -45,7 +45,7 @@ def plotter(port, out_port):
     for l in range(2):
         for j in range(3):
             create_distr(port, out_port, l, j)
-    plt.savefig(f'C:/Users/gradu/Desktop/python/sentinel_remastered/pic_features/temp/distr_graphic')
+    plt.savefig(f'temp/distr_graphic')
 
     for l in range(2):
         for j in range(3):

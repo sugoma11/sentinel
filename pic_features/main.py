@@ -29,6 +29,6 @@ for file in file_list:
     add_text(raw, port, out_port)
     raw = bitwise(raw, port, out_port)
     raw = dot_edges(raw, port_points, out_points)
-    cv2.imwrite(f'C:/Users/gradu/Desktop/python/sentinel_remastered/pic_features/featured/{port_name}/{file}.jpg', raw)
-    os.remove(f'C:/Users/gradu/Desktop/python/sentinel_remastered/pic_features/raw/{file}')
+    cv2.imwrite(f'featured/{port_name}/{file}.jpg', raw)
+    os.remove(f'raw/{file}')
 

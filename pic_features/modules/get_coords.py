@@ -47,7 +47,7 @@ def mouse_click(event, x, y, flags, param):
     # print(event, x, y, flags, param)
 
 
-file = os.listdir('C:/Users/gradu/Desktop/python/sentinel_remastered/pic_features/raw')[0]
+file = os.listdir('raw')[0]
 
 
 def define_coor(pic):
