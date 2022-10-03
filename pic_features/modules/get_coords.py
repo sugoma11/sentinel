@@ -3,15 +3,6 @@ import numpy as np
 import os
 
 
-def crop_port(image, p1, p2, p3, p4):
-    h,w,_ = np.shape(image)
-    input_points = np.float32([p1,p2,p3,p4])
-    output_points = np.float32([(0,0),(w,0),(w,h),(0,h)])
-    a = cv2.getPerspectiveTransform(input_points,output_points)
-    res = cv2.warpPerspective(image, a, (w,h), flags=cv2.INTER_LINEAR)
-    return res
-
-
 def mouse_click(event, x, y, flags, param):
     global poly, current_polygon, selected_class, img
     img2 = img.copy()
@@ -72,22 +63,6 @@ def define_coor(pic):
             current_polygon = len(poly[selected_class]) - 1
         if key == 32: # Space
             pass
-            # for cur_class in range(len(poly)):
-            #    for cur_polygon in range(len(poly[cur_class])):
-            #        if len(poly[cur_class][cur_polygon]) == 4:
-            #            h, w, _ = img.shape
-            #            input_pt = np.array(poly[cur_class][cur_polygon])
-            #            output_pt = np.array([(0, 0), (w, 0), (w, h), (0, h)])
-            #            hom, _ = cv2.findHomography(input_pt, output_pt)
-            #            res_img = cv2.warpPerspective(img.copy(), hom, (w,h))
-            #            if cur_class == 0:
-            #                res_img = cv2.resize(res_img, (380, 300), interpolation = cv2.INTER_AREA)
-            #                cv2.imwrite(f"dirty/{time.time()}.jpg", res_img)
-            #            elif cur_class == 1:
-            #                res_img = cv2.resize(res_img, (380, 300), interpolation=cv2.INTER_AREA)
-            #                cv2.imwrite(f"clear/{time.time()}.jpg", res_img)
-            #os.remove(f'images/{file}')
-            #break
         if key == 49: # 1
             selected_class = 1
             current_polygon = len(poly[selected_class]) - 1
