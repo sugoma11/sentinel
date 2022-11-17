@@ -22,4 +22,4 @@ for file in file_list:
     pic.aver_split()
 
     cv2.imwrite(f'featured/{port_name}/{file}.jpg', pic.raw)
-    #os.remove(f'raw/{file}')
+    os.remove(f'raw/{file}')

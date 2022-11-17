@@ -114,6 +114,7 @@ class Picture:
         thickness = 2
         lineType = 2
 
+
         for i in range(5):
             cv2.putText(self.raw, str_list[i], bottomLeftCornerOfText, font, fontScale, fontColor, thickness,
                         lineType)
