@@ -7,16 +7,12 @@ import matplotlib.ticker as ticker
 
 
 class Picture:
-    @staticmethod
-    def crop_port(image, p1, p2, p3, p4):
-        h, w, _ = np.shape(image)
-        input_points = np.float32([p1, p2, p3, p4])
-        output_points = np.float32([(0, 0), (w, 0), (w, h), (0, h)])
-        a = cv2.getPerspectiveTransform(input_points, output_points)
-        res = cv2.warpPerspective(image, a, (w, h), flags=cv2.INTER_LINEAR)
-        return res
-
     def __init__(self, raw, port_points, out_points):
+        """
+        :param raw (ndarray): BGR image
+        :param port_points (list): list of tuples with xy coords of port-ROI
+        :param out_points (list): list of tuples with xy coords of out port-ROI (to analyse difference)
+        """
         self.raw = raw
 
         self.port = Picture.crop_port(raw, *port_points)
@@ -27,6 +23,7 @@ class Picture:
 
         self.out_hsv = cv2.cvtColor(self.out, cv2.COLOR_BGR2HSV)
 
+        # means of HSV and RGB channels
         self.port_ch = (round(np.mean(self.port[:, :, 2]), 2),
                         round(np.mean(self.port[:, :, 1]), 2),
                         round(np.mean(self.port[:, :, 0]), 2),
@@ -41,6 +38,7 @@ class Picture:
                        round(np.mean(self.out_hsv[:, :, 1] / 2.55), 2),
                        round(np.mean(self.out_hsv[:, :, 2] / 2.55), 2))
 
+        # statistical estiamtors
         self.port_moments = (self.port_ch[3], round(self.port[:, :, 2].var(), 2),
                              round(kurtosis(self.port_hsv[:, :, 0].reshape(1, -1)[0]), 2),
                              round(float(skew(self.port_hsv[:, :, 0].reshape(-1, 1))), 2))
@@ -49,9 +47,15 @@ class Picture:
                             round(kurtosis(self.out_hsv[:, :, 0].reshape(1, -1)[0]), 2),
                             round(float(skew(self.out_hsv[:, :, 0].reshape(-1, 1))), 2))
 
+        # approximated by mean of split image
         self.port_pix = None
 
     def create_distr(self, l, j):
+        """
+        Creating histograms of image channels
+        :param l (int): column index for multi-ax figure
+        :param j (int): row index for multi-ax figure
+        """
         if l != 0:
             port = self.port[:, :, j]
             out_port = self.out[:, :, j]
@@ -81,7 +85,9 @@ class Picture:
         ax[l][j].legend(fontsize=10)
 
     def plotter(self):
-
+        """
+        Calls creating histograms in loop and saving image in temp directory
+        """
         global name_list
         global f, ax
         name_list = [["Hue", "Saturation", "Value"], ["B", "G", "R"]]
@@ -98,6 +104,9 @@ class Picture:
                 ax[l][j].clear()
 
     def add_text(self):
+        """
+        Add text with statistical information on image to analysing
+        """
         string_one = f'Port: M:{self.port_moments[0]}; D:{self.port_moments[1]}; E:{self.port_moments[2]}; A:{self.port_moments[3]};'
         string_two = f'R:{self.port_ch[0]}; G:{self.port_ch[1]}; B:{self.port_ch[2]}; H:{self.port_ch[3]}; S:{self.port_ch[4]}; V:{self.port_ch[5]}'
         string_thr = f'Out: M:{self.out_moments[0]}; D:{self.out_moments[1]}; E:{self.out_moments[2]}; A:{self.out_moments[3]};'
@@ -121,6 +130,10 @@ class Picture:
             bottomLeftCornerOfText[1] += 30
 
     def aver_split(self):
+        """
+        Creating approximated image by means of splits of raw image.
+        Necessary to show how different image in its parts if we use mean like an estimator
+        """
         im = cv2.resize(self.port, (500, 500))
         blank = np.zeros_like(im)
 
@@ -145,6 +158,9 @@ class Picture:
         self.port_pix = blank
 
     def bitwise(self):
+        """
+        Joins matplotlib graphics with image
+        """
         graph = cv2.imread(f'temp/distr_graphic.png')
         blank_port, blank_out_port = np.zeros((225, 225, 3), dtype='uint8'), np.zeros((225, 225, 3), dtype='uint8')
         if self.raw.shape[0:2] != (1000, 1920):
@@ -160,8 +176,26 @@ class Picture:
         self.raw = np.vstack((self.raw, graph))
 
     def dot_edges(self, port_points, out_points):
+        """
+        Draws points on edges of ROIs
+        """
         contours = np.array([[[port_points[0]]], [[port_points[1]]], [[port_points[2]]], [[port_points[3]]]], dtype=int)
         contours_outs = np.array([[[out_points[0]]], [[out_points[1]]], [[out_points[2]]], [[out_points[3]]]],
                                  dtype=int)
         cv2.drawContours(self.raw, contours, -1, (0, 255, 0), 7)
         cv2.drawContours(self.raw, contours_outs, -1, (0, 0, 255), 7)
+
+    @staticmethod
+    def crop_port(image, p1, p2, p3, p4):
+        """
+        :param image (ndarray): image in RGB or BGR
+        :param p1, p2, p3, p4: edge points of ROI
+        :return res (ndarray): cropped and transformed ROI
+        """
+        h, w, _ = np.shape(image)
+        input_points = np.float32([p1, p2, p3, p4])
+        output_points = np.float32([(0, 0), (w, 0), (w, h), (0, h)])
+        a = cv2.getPerspectiveTransform(input_points, output_points)
+        res = cv2.warpPerspective(image, a, (w, h), flags=cv2.INTER_LINEAR)
+        return res
+
