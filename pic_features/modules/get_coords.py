@@ -38,9 +38,6 @@ def mouse_click(event, x, y, flags, param):
     # print(event, x, y, flags, param)
 
 
-file = os.listdir('raw')[0]
-
-
 def define_coor(pic):
     global img, poly, cur_class, selected_class, current_polygon
     img = pic
