@@ -68,5 +68,8 @@ def define_coor(pic):
         if key == 27: # ESCape
             break
     cv2.destroyAllWindows()
-    return poly[0][0], poly[0][1]
-
+    # if we need two or one poly for other programs to return
+    try:
+        return poly[0][0], poly[0][1]
+    except IndexError:
+        return poly[0][0]
