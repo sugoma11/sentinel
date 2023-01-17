@@ -11,6 +11,7 @@ elif name == 'posix':
 
 from get_coords import define_coor
 
+# in this directory must be situated model (optionally with its weights)
 
 # read model settings
 json_file = open('model2.json', 'r')
@@ -20,9 +21,9 @@ cnn = model_from_json(loaded_model_json)
 # load weights into new model
 cnn.load_weights("model2.h5")
 
-# init image splitting
-HEIGHT_DIV = 8
-WIDTH_DIV = 8
+# init image splitting (HEIGHT_DIVxWIDTH_DIV pieces)
+HEIGHT_DIV = 23
+WIDTH_DIV = 23
 
 
 def crop_port(image, p1, p2, p3, p4):
@@ -80,7 +81,7 @@ def fill_zone(img, predict, coordinates):
 
 
 # path to image to test
-pth = 'test_im/2018-06-03-00_00_2018-06-03-23_59_Sentinel-2_L2A_True_color.png'
+pth = 'test_im/taman_deep_GB_and_ships.png'
 
 source = cv2.imread(pth)
 # for some models necessary change RGB2BGR
