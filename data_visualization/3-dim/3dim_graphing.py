@@ -216,9 +216,9 @@ class VisExtract():
         ax_3d.set_zlabel('B channel')
 
         ax_3d.scatter(self.xs[self.pos[0]], self.ys[self.pos[0]], self.zs[self.pos[0]], alpha=1, color='r', marker='x',
-                      label='clear')
-        ax_3d.scatter(self.xs[self.neg[0]], self.ys[self.neg[0]], self.zs[self.neg[0]], alpha=1, color='g', marker='o',
                       label='dirty')
+        ax_3d.scatter(self.xs[self.neg[0]], self.ys[self.neg[0]], self.zs[self.neg[0]], alpha=1, color='g', marker='o',
+                      label='clear')
         ax_3d.legend()
         # to change point of view
         # ax_3d.view_init(30, 150)
@@ -291,7 +291,7 @@ class VisExtract():
 
 
 # for debug and 3d rotation
-# tst = VisExtract('data', 320, 'show')
-# (trainData, testData, trainLabels, testLabels) = train_test_split(tst.data, tst.y, test_size=0.25, random_state=9)
-# model = LogisticRegression(random_state=0, solver='lbfgs').fit(trainData, trainLabels)
-# tst.add_hyperplane(list((model.coef_[0][0], model.coef_[0][1], model.coef_[0][2], model.intercept_[0])))
+tst = VisExtract('data', len(os.listdir('data')), 'show', ships=True)
+(trainData, testData, trainLabels, testLabels) = train_test_split(tst.data, tst.y, test_size=0.25, random_state=9)
+model = LogisticRegression(random_state=0, solver='lbfgs').fit(trainData, trainLabels)
+tst.add_hyperplane(list((model.coef_[0][0], model.coef_[0][1], model.coef_[0][2], model.intercept_[0])))
