@@ -22,8 +22,8 @@ cnn = model_from_json(loaded_model_json)
 cnn.load_weights("model2.h5")
 
 # init image splitting (HEIGHT_DIVxWIDTH_DIV pieces)
-HEIGHT_DIV = 23
-WIDTH_DIV = 23
+WIDTH_DIV = 12
+HEIGHT_DIV = 6
 
 
 def crop_port(image, p1, p2, p3, p4):
@@ -81,7 +81,7 @@ def fill_zone(img, predict, coordinates):
 
 
 # path to image to test
-pth = 'test_im/taman_deep_GB_and_ships.png'
+pth = 'test_im/harsh_dirty_and_blue.png'
 
 source = cv2.imread(pth)
 # for some models necessary change RGB2BGR
