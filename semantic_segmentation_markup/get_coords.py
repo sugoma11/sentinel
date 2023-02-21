@@ -9,6 +9,8 @@ colors = {
     3: (0, 255, 255) # cloud
 }
 
+water_mask = np.load('cont.npy')
+
 def mouse_click(event, x, y, flags, param):
     global poly, current_polygon, selected_class, img, sea_mask
     img2 = img.copy()
@@ -27,23 +29,17 @@ def mouse_click(event, x, y, flags, param):
                 cv2.line(img2, poly[cur_class][cur_polygon][0],
                      poly[cur_class][cur_polygon][-1],
                      (255, 0, 0), 2)
+
                 mask = np.zeros(img2.shape, np.uint8)
                 points = np.array(poly[cur_class][cur_polygon], np.int32)
                 points = points.reshape((-1, 1, 2))
 
-                if cur_class == 0:
-                    color = (0, 255, 0)
-                elif cur_class == 1:
-                    color = (0, 0, 255)
-                elif cur_class == 2:
-                    color = (255, 0, 0)
-                elif cur_class == 3:
-                    color = (255, 255, 255)
-
-                mask = cv2.fillPoly(mask, [points], color)
+                mask = cv2.fillPoly(mask, [points], colors[cur_class])
                 img2 = cv2.addWeighted(src1=img2, alpha=1, src2=mask, beta=.2, gamma=0)
     if event == cv2.EVENT_RBUTTONDOWN:
         poly[selected_class][current_polygon].pop()
+
+    cv2.putText(img2, str(selected_class), (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 1)
 
     cv2.imshow('DrawContours', img2)
     cv2.imshow('SeaMask', sea_mask)
@@ -56,7 +52,18 @@ def fill_clouds(image, sea_mask):
     clouds_mask = np.where(image[:, :, 2] < 240, 0, 255).astype('uint8')
     contours, hierarchy = cv2.findContours(clouds_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     for i in range(len(contours)):
-        cv2.drawContours(sea_mask, contours, i, (255, 0, 0), -1)
+        cv2.drawContours(sea_mask, contours, i, (0, 255, 255), -1)
+
+def ships_finder(image):
+    temp = image.copy()
+    cv2.drawContours(temp, [water_mask], -1, (0, 0, 0), -1)
+    temp = np.where(temp == 0, 255, 0).astype('uint8')
+    cv2.imshow('gfgd', temp)
+    cv2.waitKey(0)
+    temp = cv2.bitwise_or(image, image, mask=temp[:, :, 0])
+    #sea = np.where(sea_mask[:, :, 0] != 255 and sea_mask[:, :, 1] == 255, 0, 255).astype('uint8')
+    cv2.imshow('gfgd', temp)
+    cv2.waitKey(2323)
 
 
 def define_coor(pic):
@@ -72,7 +79,6 @@ def define_coor(pic):
 
     while True:
         key = cv2.waitKey(0)
-
         if key == 120 or key == 247: # X
             if current_polygon == len(poly[selected_class]) - 1:
                 poly[selected_class].append([])
@@ -82,7 +88,7 @@ def define_coor(pic):
             if current_polygon > 0:
                 current_polygon -= 1
 
-        if key == 118: # C
+        if key == 99: # C
             fill_clouds(img, sea_mask)
 
         if key == 48: # 0
@@ -127,9 +133,8 @@ def fill_pollys(image, poly):
 
 img = cv2.imread('2022-07-12-00_00_2022-07-12-23_59_Sentinel-2_L2A_True_color.png')
 sea_mask = img.copy()
-water_mask = np.load('cont.npy')
 cv2.drawContours(sea_mask, [water_mask], 0, (0, 255, 0), -1)
-
+ships_finder(img)
 define_coor(img)
 
 drawed = fill_pollys(sea_mask, poly)
