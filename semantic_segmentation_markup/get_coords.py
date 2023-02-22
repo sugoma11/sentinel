@@ -18,6 +18,13 @@ names = {
     4: 'ship contour',
 }
 
+colors_marks = {
+    (0, 255, 0): 0,
+    (0, 0, 255): 1,
+    (255, 0, 0): 2,
+    (0, 255, 255): 3,
+}
+
 water_mask = np.load('cont.npy')
 
 
@@ -162,6 +169,7 @@ def define_coor(pic):
 
 
 def fill_pollys(image, poly):
+
     for i, cls in enumerate(poly):
         for zone in cls:
             if len(zone):
@@ -175,6 +183,17 @@ def fill_pollys(image, poly):
     return image
 
 
+def end_mark(image):
+    res = np.full(image.shape, 5)
+
+    for col in colors_marks:
+        thresh = np.array(col, dtype="uint8")
+        mask = cv2.inRange(image, thresh, thresh)
+        b = np.stack((mask, mask, mask), axis=2)
+        res = np.where(b == 255, colors_marks[col], res).astype('uint8')
+
+    return res
+
 data_dir = '../data/novoros'
 ls = os.listdir(data_dir)
 os.chdir(data_dir)
@@ -187,4 +206,13 @@ for file in ls:
     ships_finder(img)
     define_coor(img)
     drawed = fill_pollys(sea_mask, poly)
+
+    cv2.imshow('drawed', drawed)
+    cv2.waitKey(0)
+
+    end = end_mark(drawed)
+
+    cv2.imshow('end', end)
+    cv2.imwrite(f'marked/{file}', end)
+    cv2.waitKey(0)
     # cv2.imwrite(f'marked/{file}', drawed)
