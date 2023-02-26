@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+from pathlib import Path
 
 colors = {
     0: (0, 255, 0), # clear
@@ -8,6 +9,7 @@ colors = {
     2: (255, 0, 0), # ship
     3: (0, 255, 255), # cloud
     4: (255, 0, 0), # ship
+    5:  (0, 255, 255) # cloud
 }
 
 names = {
@@ -16,6 +18,7 @@ names = {
     2: 'ship',
     3: 'cloud',
     4: 'ship contour',
+    5: 'cloud contour'
 }
 
 colors_marks = {
@@ -25,7 +28,18 @@ colors_marks = {
     (0, 255, 255): 3,
 }
 
+# delta of xxyy
+DXDY = 3
+
 water_mask = np.load('cont.npy')
+
+if len(list(Path('../data/novoros/marked').glob('*.png'))) == 0:
+    num = 0
+
+else:
+    num = len((sorted(Path('../data/novoros/marked').glob('*.png'), key=os.path.getmtime)))
+
+print(num)
 
 
 def mouse_click(event, x, y, flags, param):
@@ -34,14 +48,16 @@ def mouse_click(event, x, y, flags, param):
 
     if event == cv2.EVENT_LBUTTONDOWN:
 
-        if selected_class == 4:
+        if selected_class == 4 or selected_class == 5:
             for xxyy in ships_masks:
                 if (xxyy[0] < x < xxyy[2]) and (xxyy[1] < y < xxyy[3]):
                     cn = []
                     for pair in ships_masks[xxyy]:
                         cn.append((pair[0], pair[1]))
-
-            poly[selected_class][current_polygon] = cn
+            try:
+                poly[selected_class][current_polygon] = cn
+            except UnboundLocalError:
+                pass
 
         else:
             poly[selected_class][current_polygon].append((x, y))
@@ -72,6 +88,8 @@ def mouse_click(event, x, y, flags, param):
         poly[selected_class][current_polygon].pop()
 
     cv2.putText(img2, str(names[selected_class]), (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+    cv2.putText(img2, f'current_polygon: {current_polygon}', (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+
 
     cv2.imshow('DrawContours', img2)
     cv2.imshow('SeaMask', sea_mask)
@@ -83,6 +101,7 @@ def fill_clouds(image, sea_mask):
     contours, hierarchy = cv2.findContours(clouds_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     for i in range(len(contours)):
         cv2.drawContours(sea_mask, contours, i, (0, 255, 255), -1)
+
 
 def ships_finder(image):
     global ships_masks
@@ -106,7 +125,7 @@ def ships_finder(image):
         y_min = np.min(cont[:, 1])
         y_max = np.max(cont[:, 1])
 
-        ships_masks[(x_min - 5, y_min - 5, x_max + 5, y_max + 5)] = cont
+        ships_masks[(x_min - DXDY, y_min - DXDY, x_max + DXDY, y_max + DXDY)] = cont
 
     sh = temp.copy()
 
@@ -122,28 +141,42 @@ def define_coor(pic):
     cv2.namedWindow('DrawContours')
     cv2.setMouseCallback('DrawContours', mouse_click)
 
-
     while True:
         key = cv2.waitKey(0)
+        print(key)
+
         if key == 120 or key == 247: # X
             if current_polygon == len(poly[selected_class]) - 1:
                 poly[selected_class].append([])
             current_polygon += 1
 
+        if key == 100: # D - Delete
+            if current_polygon >= 1:
+                current_polygon -= 1
+                poly[selected_class].clear()
+
         if key == 122 or key == 255: # Z
             if current_polygon > 0:
                 current_polygon -= 1
 
-        if key == 99: # C
-            fill_clouds(img, sea_mask)
+        if key == 99: # C - Cloud contours
+            selected_class = 5
+            current_polygon = len(poly[selected_class]) - 1
 
         if key == 48: # 0
             selected_class = 0
             current_polygon = len(poly[selected_class]) - 1
 
-        if key == 115: # 0
+        if key == 115: # S - Ships and contours
             selected_class = 4
             current_polygon = len(poly[selected_class]) - 1
+
+        if key == 103 and selected_class == 4:
+            poly[3][current_polygon] = poly[selected_class][current_polygon]
+            poly[selected_class][current_polygon] = []
+            # poly[selected_class][current_polygon].clear()
+            # poly[3][len(poly[3]) - 1] = tmp
+
         # Save image
         if key == 32: # Space
             pass
@@ -163,8 +196,12 @@ def define_coor(pic):
         if key != -1:
             pass
 
+        if key == 98: # B - Break
+            exit()
+
         if key == 27: # ESCape
             break
+
     cv2.destroyAllWindows()
 
 
@@ -198,21 +235,21 @@ data_dir = '../data/novoros'
 ls = os.listdir(data_dir)
 os.chdir(data_dir)
 
-for file in ls:
-    poly = [[[]] for i in range(5)]
-    img = cv2.imread(file)
+for i in range(num, len(ls)):
+    poly = [[[]] for i in range(6)]
+    img = cv2.imread(ls[i])
     sea_mask = img.copy()
+    fill_clouds(img, sea_mask)
     cv2.drawContours(sea_mask, [water_mask], 0, (0, 255, 0), -1)
     ships_finder(img)
     define_coor(img)
     drawed = fill_pollys(sea_mask, poly)
 
-    cv2.imshow('drawed', drawed)
-    cv2.waitKey(0)
+    # cv2.imshow('drawed', drawed)
+    # cv2.waitKey(0)
+    # cv2.destroyWindow('drawed')
 
     end = end_mark(drawed)
 
-    cv2.imshow('end', end)
-    cv2.imwrite(f'marked/{file}', end)
-    cv2.waitKey(0)
-    # cv2.imwrite(f'marked/{file}', drawed)
+    os.remove(ls[i])
+    cv2.imwrite(f'marked/{ls[i]}', end)
