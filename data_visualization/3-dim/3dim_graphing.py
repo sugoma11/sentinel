@@ -291,7 +291,7 @@ class VisExtract():
 
 
 # for debug and 3d rotation
-tst = VisExtract('data', len(os.listdir('data')), 'show', ships=True)
+tst = VisExtract('data', len(os.listdir('data')), 'show', ships=True, aver='median')
 (trainData, testData, trainLabels, testLabels) = train_test_split(tst.data, tst.y, test_size=0.25, random_state=9)
 model = LogisticRegression(random_state=0, solver='lbfgs').fit(trainData, trainLabels)
 tst.add_hyperplane(list((model.coef_[0][0], model.coef_[0][1], model.coef_[0][2], model.intercept_[0])))
